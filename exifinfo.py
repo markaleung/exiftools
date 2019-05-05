@@ -74,6 +74,6 @@ if __name__=='__main__':
 		separator = '/'
 		folder = "/Path to/Pictures/"
 	multiFile(folder)
-  # Get full info for one image
+	# Get full info for one image
 	exif = piexif.load('/Path to/Picture.jpg')
 	printShort(exif)
