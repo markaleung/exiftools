@@ -57,8 +57,7 @@ def oneFile(path):
 		# getEv, 
 	):
 		try:
-			if exif['0th'][272] not in (b'DC-GF9', b'Canon EOS REBEL T1i'):
-				function(path, exif)
+			function(path, exif)
 		except KeyError:
 			pass
 def multiFile(folder):
