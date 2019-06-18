@@ -1,5 +1,5 @@
 # exiftools
-A collection of programs for processing digital photos' EXIF data
+A collection of programs for processing digital photos' EXIF data  
 These programs require installing piexif: pip install piexif. 
 
 # exifinfo
