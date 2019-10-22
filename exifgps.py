@@ -28,24 +28,24 @@ def makeDict(lat, lon, elevation, utc):
 		[29, utc.strftime('%Y:%m:%d').encode('utf-8')], 
 	] if utc == utc else []
 	return dict(main+elevation+utc)
-def getUTC(folder, file, timeZone):
-	exif = piexif.load(folder+separator+file)
+def getUTC(folder, file, hours, minutes):
+	exif = piexif.load(folder+'/'+file)
 	try:
 		time = exif['Exif'][36867].decode('utf-8')
 		time = datetime.datetime.strptime(time, '%Y:%m:%d %H:%M:%S')
-		utc = time - relativedelta(hours = int(timeZone))
+		utc = time - relativedelta(hours = int(hours), minutes = int(minutes))
 	except KeyError:
 		utc = float('nan')
 	return exif, utc
 
 # Main Function
-def gps(folder, file, lat, lon, elevation, timeZone):
-	exif, utc = getUTC(folder, file, timeZone)
+def gps(folder, file, lat, lon, elevation, hours, minutes):
+	exif, utc = getUTC(folder, file, hours, minutes)
 	if 2 not in exif['GPS']:
 		exif['GPS'] = makeDict(lat, lon, elevation, utc)
 		# Modify File
-		piexif.insert(piexif.dump(exif), folder+separator+file)
+		piexif.insert(piexif.dump(exif), folder+'/'+file)
 		print(file, unDMS(exif['GPS'][2]), unDMS(exif['GPS'][4]))
 
 if __name__=='__main__':
-	gps('/path/to/photo', 'image.jpg', 100, 20, 20)
+	gps('/path/to/photo', 'image.jpg', 100, 20, 20, 1, 0)
