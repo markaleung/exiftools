@@ -1,51 +1,60 @@
-import piexif, datetime, sys
+import piexif, datetime
 from dateutil.relativedelta import relativedelta
 
-# Helper Functions
-multiplierDMS = 10000
-multiplierElev = 100
-def makeDMS(number):
-	number = abs(number)
-	degrees = int(number)
-	minutes = int((number - degrees) * 60)
-	seconds = (number - degrees - minutes/60) * 3600 * multiplierDMS
-	seconds = int(round(seconds, 0))
-	return ((degrees, 1), (minutes, 1), (seconds, multiplierDMS))
-unDMS = lambda dms: round(dms[0][0] + dms[1][0] / 60 + dms[2][0] / 3600 / dms[2][1], 5)
-def makeDict(lat, lon, elevation, utc):
-	main = [
-		[1, b'N' if lat >= 0 else b'S'], 
-		[2, makeDMS(lat)], 
-		[3, b'E' if lon >= 0 else b'W'], 
-		[4, makeDMS(lon)], 
-	]
-	elevation = [
-		[5, 0 if elevation >= 0 else 1], 
-		[6, (int(abs(elevation) * multiplierElev), multiplierElev)]
-	] if elevation == elevation else []
-	utc = [
-		[7, ((utc.hour, 1), (utc.minute, 1), (utc.second, 1))], 
-		[29, utc.strftime('%Y:%m:%d').encode('utf-8')], 
-	] if utc == utc else []
-	return dict(main+elevation+utc)
-def getUTC(folder, file, hours, minutes):
-	exif = piexif.load(folder+'/'+file)
-	try:
-		time = exif['Exif'][36867].decode('utf-8')
-		time = datetime.datetime.strptime(time, '%Y:%m:%d %H:%M:%S')
-		utc = time - relativedelta(hours = int(hours), minutes = int(minutes))
-	except KeyError:
-		utc = float('nan')
-	return exif, utc
-
-# Main Function
-def gps(folder, file, lat, lon, elevation, hours, minutes):
-	exif, utc = getUTC(folder, file, hours, minutes)
-	if 2 not in exif['GPS']:
-		exif['GPS'] = makeDict(lat, lon, elevation, utc)
+class GPS():
+	def _make_dms(self, number):
+		number = abs(number)
+		degrees = int(number)
+		minutes = int((number - degrees) * 60)
+		seconds = (number - degrees - minutes/60) * 3600 * MULTIPLIER_DMS
+		seconds = int(round(seconds, 0))
+		return ((degrees, 1), (minutes, 1), (seconds, MULTIPLIER_DMS))
+	def load_gps(self, lat, lon, elevation):
+		self.lat = lat
+		self.lon = lon
+		self.elevation = elevation
+	def load_file(self, folder, file):
+		self.folder = folder
+		self.file = file
+		self.exif = piexif.load(self.folder+'/'+self.file)
+	def get_utc(self, hours, minutes):
+		try:
+			time = self.exif['Exif'][36867].decode('utf-8')
+			time = datetime.datetime.strptime(time, '%Y:%m:%d %H:%M:%S')
+			self.utc = time - relativedelta(hours = int(hours), minutes = int(minutes))
+		# KeyError: Date is missing. TypeError: hours or minutes is None
+		except (KeyError, TypeError):
+			self.utc = float('nan')
+	def _make_dict(self):
+		main = [
+			[1, b'N' if self.lat >= 0 else b'S'], 
+			[2, self._make_dms(self.lat)], 
+			[3, b'E' if self.lon >= 0 else b'W'], 
+			[4, self._make_dms(self.lon)], 
+		]
+		elevation = [
+			[5, 0 if self.elevation >= 0 else 1], 
+			[6, (int(abs(self.elevation) * MULTIPLIER_ELEV), MULTIPLIER_ELEV)], 
+		] if self.elevation == self.elevation else []
+		utc = [
+			[7, ((self.utc.hour, 1), (self.utc.minute, 1), (self.utc.second, 1))], 
+			[29, self.utc.strftime('%Y:%m:%d').encode('utf-8')], 
+		] if self.utc == self.utc else []
+		self.exif['GPS'] = dict(main + elevation + utc)
 		# Modify File
-		piexif.insert(piexif.dump(exif), folder+'/'+file)
-		print(file, unDMS(exif['GPS'][2]), unDMS(exif['GPS'][4]))
+		piexif.insert(piexif.dump(self.exif), self.folder+'/'+self.file)
+	def main(self):
+		if 2 not in self.exif['GPS'] or True:
+			self._make_dict()
+			print(self.file, round(self.lat, 6), round(self.lon, 6))
+
+# Multipliers
+MULTIPLIER_DMS = 10000
+MULTIPLIER_ELEV = 100
 
 if __name__=='__main__':
-	gps('/path/to/photo', 'image.jpg', 100, 20, 20, 1, 0)
+	my_gps = GPS()
+	my_gps.load_gps(40.01105, 116.386242, 0)
+	my_gps.load_file('/path/to/', 'image.jpb')
+	my_gps.get_utc(8, 0)
+	my_gps.main()
