@@ -48,13 +48,16 @@ class GPS():
 			self._make_dict()
 			print(self.file, round(self.lat, 6), round(self.lon, 6))
 
+def gps(folder, file, latitude, longitude, elevation, hours, minutes):
+	my_gps = GPS()
+	my_gps.load_file(folder, file)
+	my_gps.load_gps(latitude, longitude, elevation)
+	my_gps.get_utc(hours, minutes)
+	my_gps.main()
+
 # Multipliers
 MULTIPLIER_DMS = 10000
 MULTIPLIER_ELEV = 100
 
 if __name__=='__main__':
-	my_gps = GPS()
-	my_gps.load_gps(40.01105, 116.386242, 0)
-	my_gps.load_file('/path/to/', 'image.jpb')
-	my_gps.get_utc(8, 0)
-	my_gps.main()
+    gps('/path/to/', 'image.jpg', 40.01105, 116.386242, 0, 8, 0)
