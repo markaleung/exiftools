@@ -34,6 +34,6 @@ sensor = st.selectbox('Sensor Size', list(sensors.keys()))
 multi_lens.lens_weight.crop = sensors['Full Frame'] / sensors[sensor]
 
 multi_lens.lens_weight.aperture = st.number_input(f'Aperture Zoom', min_value = 2.8, max_value=8.0, value = 5.6)
-multi_lens.main(type_ = 'Zoom;')
+multi_lens.main(type_ = 'Zoom')
 multi_lens.lens_weight.aperture = st.number_input(f'Aperture Prime', min_value = 1.2, max_value=2.8, value = 1.7)
 multi_lens.main(type_ = 'Prime')
