@@ -9,8 +9,9 @@ class DistanceCalculator:
         self.sensor = 'Micro Four Thirds'
     def _calculate_viewing_ratio(self):
         self.viewing_ratio = self.viewing_distance / self.image_diagonal
+        self.viewing_ratio_reverse = 1 / self.viewing_ratio
     def _calculate_megapixels(self):
-        self.degrees_diagonal = np.degrees(np.arctan(1/self.viewing_ratio))
+        self.degrees_diagonal = 2 * np.degrees(np.arctan(self.viewing_ratio_reverse/2))
         self.pixel_diagonal = self.degrees_diagonal * self.pixels_per_degree
         self.pixel_horizontal = self.pixel_diagonal * 4/5
         self.pixel_vertical = self.pixel_diagonal * 3/5
